@@ -113,21 +113,58 @@ def clean_text(output_text):
     return cleaned_text
 
 
+import time
+
+def answer_question_from_pdf_with_retry(pdf_file, user_question):
+    retry_attempts = 3
+    current_attempt = 1
+    while current_attempt <= retry_attempts:
+        try:
+            return answer_question_from_pdf(pdf_file, user_question)
+        except google.generativeai.types.generation_types.StopCandidateException as e:
+            # Handle the exception by printing/writing another prompt
+            print("An error occurred: StopCandidateException")
+            # Write another prompt here
+            return "An error occurred: StopCandidateException"
+        except Exception as e:
+            # Handle other exceptions
+            print(f"An error occurred: {e}")
+            if current_attempt == retry_attempts:
+                return "An error occurred: Maximum retry attempts reached"
+            else:
+                wait_time = 2 ** current_attempt  # Exponential backoff
+                print(f"Retrying in {wait_time} seconds...")
+                time.sleep(wait_time)
+                current_attempt += 1
+
+
+
 def main():
-    # Example usage
     pdf_file = "/Users/macbook/Desktop/multiusrdb/docs/ISO+13485-2016.pdf"
-    user_question = "write tree point about Management responsibility"
+    user_question = "write three point about quality policy"
 
     try:
-        answer = answer_question_from_pdf(pdf_file, user_question)
+        answer = answer_question_from_pdf_with_retry(pdf_file, user_question)
         print(answer)
-    except google.generativeai.types.generation_types.StopCandidateException as e:
-        # Handle the exception by printing/writing another prompt
-        print("An error occurred: StopCandidateException")
-        # Write another prompt here
     except Exception as e:
-        # Handle other exceptions
         print(f"An error occurred: {e}")
+
+
+
+# def main():
+    # pdf_file = "/Users/macbook/Desktop/multiusrdb/docs/ISO+13485-2016.pdf"
+    # user_question = "write tree point about Management responsibility"
+
+    # try:
+    #     answer = answer_question_from_pdf(pdf_file, user_question)
+    #     print(answer)
+    # except google.generativeai.types.generation_types.StopCandidateException as e:
+    #     # Handle the exception by printing/writing another prompt
+    #     print("An error occurred: StopCandidateException")
+    #     # Write another prompt here
+    # except Exception as e:
+    #     # Handle other exceptions
+    #     print(f"An error occurred: {e}")
 
 
 # def main():
